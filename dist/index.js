@@ -111,7 +111,8 @@ const UUMonitorContent = () => {
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
             window.SP_REACT.createElement(DFL.ToggleField, { label: "\u52A0\u901F\u72B6\u6001", description: realTextState ? "已连接 (TUN 虚拟网卡活跃)" : "未连接", checked: uiToggleState, onChange: handleToggleClick }))));
 };
-var index = DFL.definePlugin((serverApi) => {
+// 核心：恢复我们之前验证成功的黑科技写法
+const plugin_export_var = DFL.definePlugin((serverApi) => {
     return {
         title: window.SP_REACT.createElement("div", { className: DFL.staticClasses.Title }, "ARE U OK"),
         content: window.SP_REACT.createElement(UUMonitorContent, null),
@@ -119,6 +120,9 @@ var index = DFL.definePlugin((serverApi) => {
         onDismount() { },
     };
 });
+if (typeof window !== "undefined") {
+    window.__DECKY_PLUGIN_EXPORT__ = plugin_export_var;
+}
 
-export { index as default };
+export { plugin_export_var as default };
 //# sourceMappingURL=index.js.map
