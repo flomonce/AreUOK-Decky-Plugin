@@ -46,7 +46,7 @@ const UUMonitorContent = () => {
   );
 };
 
-const plugin_export_var = definePlugin((serverApi) => {
+export default definePlugin((serverApi) => {
   return {
     title: <div className={staticClasses.Title}>ARE U OK</div>,
     content: <UUMonitorContent />,
@@ -54,7 +54,3 @@ const plugin_export_var = definePlugin((serverApi) => {
     onDismount() {},
   };
 });
-
-export default plugin_export_var;
-
-if (typeof window !== "undefined") window.__DECKY_PLUGIN_EXPORT__ = plugin_export_var;
