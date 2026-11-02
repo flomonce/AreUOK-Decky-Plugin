@@ -46,8 +46,8 @@ const UUMonitorContent = () => {
   );
 };
 
-// 核心：恢复我们之前验证成功的黑科技写法
-const plugin_export_var = definePlugin((serverApi) => {
+// 标准写法：直接默认导出
+export default definePlugin((serverApi) => {
   return {
     title: <div className={staticClasses.Title}>ARE U OK</div>,
     content: <UUMonitorContent />,
@@ -55,9 +55,3 @@ const plugin_export_var = definePlugin((serverApi) => {
     onDismount() {},
   };
 });
-
-export default plugin_export_var;
-
-if (typeof window !== "undefined") {
-  window.__DECKY_PLUGIN_EXPORT__ = plugin_export_var;
-}
