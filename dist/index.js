@@ -124,5 +124,5 @@ if (typeof window !== "undefined") {
     window.__DECKY_PLUGIN_EXPORT__ = plugin_export_var;
 }
 
-export { plugin_export_var as default };
+
 //# sourceMappingURL=index.js.map
