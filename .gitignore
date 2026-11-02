@@ -1,0 +1,18 @@
+# 依赖与构建产物
+node_modules/
+dist/
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+# 开发环境与缓存
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+*.log
+
+# 系统与杂项
+.DS_Store
+Thumbs.db
+*.zip
+*.tar.gz
