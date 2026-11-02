@@ -5,30 +5,36 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# 获取真实用户和路径
 REAL_USER=${SUDO_USER:-$(whoami)}
 USER_HOME=$(eval echo "~$REAL_USER")
 PLUGIN_DIR="$USER_HOME/homebrew/plugins/AreUOK"
 TMP_DIR="/tmp/areuok-download"
+REPO_URL="https://github.com/flomonce/AreUOK-Decky-Plugin/archive/refs/heads/main.tar.gz"
 
 echo "========================================="
-echo " 🚀 开始在线安装 AreUOK"
+echo " 🚀 开始安装 AreUOK"
 echo "========================================="
 
 rm -rf "$TMP_DIR"
 mkdir -p "$TMP_DIR"
 
-echo "[1/3] 正在从 GitHub 下载成品..."
-# 下载 GitHub 上的 main 分支压缩包
-curl -sL https://github.com/flomonce/AreUOK-Decky-Plugin/archive/refs/heads/main.tar.gz | tar -xz -C "$TMP_DIR" --strip-components=1
+echo "[1/3] 正在从 GitHub 下载源码 (可能需要魔法)..."
+# 使用 -L 跟随重定向，--retry 增加重试机制，防止偶发断流
+curl -L --retry 3 -# "$REPO_URL" -o "$TMP_DIR/main.tar.gz"
 
-if [ ! -d "$TMP_DIR/dist" ]; then
-    echo "❌ 下载失败或仓库中缺少 dist 文件夹！"
-    rm -rf "$TMP_DIR"
+if [ ! -s "$TMP_DIR/main.tar.gz" ]; then
+    echo "❌ 下载失败！文件为空，请检查网络。"
     exit 1
 fi
 
-echo "[2/3] 正在部署到 Decky 目录..."
+echo "[2/3] 正在解压并部署文件..."
+tar -xzf "$TMP_DIR/main.tar.gz" -C "$TMP_DIR" --strip-components=1
+
+if [ ! -d "$TMP_DIR/dist" ]; then
+    echo "❌ 解压后找不到 dist 文件夹！可能下载到了错误的网页。"
+    exit 1
+fi
+
 rm -rf "$PLUGIN_DIR"
 mkdir -p "$PLUGIN_DIR"
 
