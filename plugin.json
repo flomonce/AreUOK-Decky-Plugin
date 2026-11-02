@@ -3,7 +3,7 @@
   "author": "rog",
   "flags": ["root"],
   "api_version": 1,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publish": {
     "tags": ["utility"],
     "description": "Are U OK Monitor",

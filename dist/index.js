@@ -16,6 +16,9 @@ if (api._version != API_VERSION) {
     console.warn(`[@decky/api] Requested API version ${API_VERSION} but the running loader only supports version ${api._version}. Some features may not work.`);
 }
 const callable = api.callable;
+const addEventListener = api.addEventListener;
+const removeEventListener = api.removeEventListener;
+const toaster = api.toaster;
 
 var DefaultContext = {
   color: undefined,
@@ -85,6 +88,14 @@ function FaBolt (props) {
 const UUMonitorContent = () => {
     const [uiToggleState, setUiToggleState] = SP_REACT.useState(false);
     const [realTextState, setRealTextState] = SP_REACT.useState(false);
+    const [monitorEnabled, setMonitorEnabled] = SP_REACT.useState(() => {
+        const saved = localStorage.getItem("areuok_monitor_enabled");
+        if (saved === null) {
+            localStorage.setItem("areuok_monitor_enabled", "true");
+            return true;
+        }
+        return saved === "true";
+    });
     const fetchRealStatus = async () => {
         try {
             const checkTunFunc = callable('check_tun');
@@ -93,31 +104,66 @@ const UUMonitorContent = () => {
             setRealTextState(status);
         }
         catch (e) {
-            console.error("callable 调用失败:", e);
-            setUiToggleState(false);
-            setRealTextState(false);
+            console.error(e);
         }
     };
     SP_REACT.useEffect(() => {
         fetchRealStatus();
+        const localListener = (isConnected) => {
+            setUiToggleState(isConnected);
+            setRealTextState(isConnected);
+        };
+        addEventListener("uu_status_change", localListener);
+        return () => {
+            removeEventListener("uu_status_change", localListener);
+        };
     }, []);
     const handleToggleClick = () => {
         setUiToggleState((prev) => !prev);
-        setTimeout(() => {
-            fetchRealStatus();
-        }, 200);
+        setTimeout(fetchRealStatus, 200);
+    };
+    const handleMonitorToggle = async (enabled) => {
+        setMonitorEnabled(enabled);
+        localStorage.setItem("areuok_monitor_enabled", enabled.toString());
+        try {
+            const setBackendStatus = callable('set_monitor_enabled');
+            await setBackendStatus(enabled);
+        }
+        catch (e) {
+            console.error(e);
+        }
     };
     return (window.SP_REACT.createElement(DFL.PanelSection, { title: "ARE U OK \u72B6\u6001\u76D1\u63A7" },
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.ToggleField, { label: "\u52A0\u901F\u72B6\u6001", description: realTextState ? "已连接 (TUN 虚拟网卡活跃)" : "未连接", checked: uiToggleState, onChange: handleToggleClick }))));
+            window.SP_REACT.createElement(DFL.ToggleField, { label: "\u5F53\u524D\u52A0\u901F\u72B6\u6001", description: realTextState ? "已连接 (TUN 虚拟网卡活跃)" : "未连接", checked: uiToggleState, onChange: handleToggleClick })),
+        window.SP_REACT.createElement(DFL.PanelSectionRow, null,
+            window.SP_REACT.createElement(DFL.ToggleField, { label: "\u540E\u53F0\u72B6\u6001\u76D1\u542C", description: monitorEnabled ? "已开启 (状态变化时自动通知)" : "已关闭 (不再后台耗电)", checked: monitorEnabled, onChange: handleMonitorToggle }))));
 };
-// 标准写法：直接默认导出
 var index = DFL.definePlugin((serverApi) => {
+    console.log("🔥 AreUOK Dev: 插件环境初始化");
+    const globalListener = (isConnected) => {
+        toaster.toast({
+            title: "Are U OK",
+            body: isConnected ? "加速器已连接" : "加速器已断开",
+            icon: window.SP_REACT.createElement(FaBolt),
+        });
+    };
+    addEventListener("uu_status_change", globalListener);
+    // 前端加载完毕，直接读取本地存储并告知后端（不再等谁，直接发）
+    let initialEnabled = localStorage.getItem("areuok_monitor_enabled");
+    if (initialEnabled === null) {
+        initialEnabled = "true";
+        localStorage.setItem("areuok_monitor_enabled", "true");
+    }
+    const setBackendStatus = callable('set_monitor_enabled');
+    setBackendStatus(initialEnabled === "true").catch(console.error);
     return {
         title: window.SP_REACT.createElement("div", { className: DFL.staticClasses.Title }, "ARE U OK"),
         content: window.SP_REACT.createElement(UUMonitorContent, null),
         icon: window.SP_REACT.createElement(FaBolt, null),
-        onDismount() { },
+        onDismount() {
+            removeEventListener("uu_status_change", globalListener);
+        },
     };
 });
 
