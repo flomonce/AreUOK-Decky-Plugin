@@ -63,8 +63,8 @@ class Plugin:
         # 2. 处理开机/唤醒的延迟通知
         if is_connected:
             if apply_delay:
-                decky.logger.info(f"开机/唤醒首次检测已连接，延迟 3 秒等待 UI 渲染...")
-                await asyncio.sleep(3)
+                decky.logger.info(f"开机/唤醒首次检测已连接，延迟 5 秒等待 UI 渲染...")
+                await asyncio.sleep(5)
             else:
                 decky.logger.info(f"手动开启/重载，立即发送连接通知...")
 
